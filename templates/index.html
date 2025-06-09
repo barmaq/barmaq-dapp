@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>barmaq diplom</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div id="header">
+        <h1>barmaq diplom {{ version }}</h1>
+    </div>
+    <div id="game-container">
+        <canvas id="game" width="600" height="150"></canvas>
+    </div>
+    <script src="{{ url_for('static', filename='runner.js') }}"></script>
+</body>
+</html>
