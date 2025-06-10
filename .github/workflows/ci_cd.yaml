@@ -10,7 +10,7 @@ env:
   K8S_NAMESPACE: app
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       # 1. Забираем код
@@ -30,23 +30,38 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ env.IMAGE_NAME }}:latest
+          tags: |
+            ${{ env.IMAGE_NAME }}:latest
+            ${{ env.IMAGE_NAME }}:${{ github.sha }}
 
-      # 4. Устанавливаем kubectl
-      - name: Install kubectl
-        uses: azure/setup-kubectl@v3
+  deploy:
+    needs: build
+    name: Deploy to Kubernetes
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Configure Kubernetes CLI
+        uses: azure/k8s-set-context@v4
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBECONFIG }}
 
       # 5. Деплоим в Kubernetes
       - name: Deploy to Cluster
         run: |
-          echo "${{ secrets.KUBE_CONFIG }}" | base64 --decode > kubeconfig.yaml
-          export KUBECONFIG=kubeconfig.yaml
-
+          # Обновляем image tag в deployment
+          sed -i "s|${{ env.IMAGE_NAME }}:.*|${{ env.IMAGE_NAME }}:${{ github.sha }}|" k8s/deployment.yaml
+          
           # Применяем манифесты
-          kubectl apply -f k8s/deployment.yaml
-          kubectl apply -f k8s/service.yaml
+          kubectl apply -f k8s/deployment.yaml -n ${{ env.K8S_NAMESPACE }}
+          kubectl apply -f k8s/service.yaml -n ${{ env.K8S_NAMESPACE }}
           # Если есть Ingress:
-          #kubectl apply -f k8s/ingress.yaml
+          #kubectl apply -f k8s/ingress.yaml -n ${{ env.K8S_NAMESPACE }}
 
           # Проверяем поды
           kubectl get pods -n ${{ env.K8S_NAMESPACE }}
+          
+          # Ждем, пока деплоймент обновится
+          kubectl rollout status deployment/barmaq-dapp -n ${{ env.K8S_NAMESPACE }} --timeout=300s
