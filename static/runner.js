@@ -5,6 +5,8 @@
     var canvas = document.getElementById("game");
     var ctx = canvas.getContext("2d");
 
+    var gameStarted = false;  // Флаг для отслеживания состояния игры
+
     var trex = {
         x: 50,
         y: 100,
@@ -70,8 +72,22 @@
         ctx.fillText("Score: " + score, 500, 20);
     }
 
+    function drawStartScreen() {
+        ctx.fillStyle = "black";
+        ctx.font = "20px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText("Press SPACE to start", canvas.width/2, canvas.height/2);
+        drawTrex();  // Отображаем динозавра на стартовом экране
+    }
+
     function gameLoop() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        if (!gameStarted) {
+            drawStartScreen();
+            requestAnimationFrame(gameLoop);
+            return;
+        }
 
         updateTrex();
         updateObstacles();
@@ -83,19 +99,28 @@
 
         score++;
         if (detectCollision()) {
+            gameStarted = false;  // Сбрасываем флаг при проигрыше
+            score = 0;  // Сбрасываем счет
+            obstacles = [];  // Очищаем препятствия
             alert("Game over! Final score: " + score);
-            document.location.reload();
+            requestAnimationFrame(gameLoop);  // Возвращаемся к стартовому экрану
         } else {
             requestAnimationFrame(gameLoop);
         }
     }
 
     window.addEventListener("keydown", function(e) {
-        if (e.code === "Space" && trex.onGround) {
-            trex.vy = trex.jumpPower;
-            trex.onGround = false;
+        if (e.code === "Space") {
+            if (!gameStarted) {
+                gameStarted = true;  // Начинаем игру при нажатии пробела
+                return;
+            }
+            if (trex.onGround) {
+                trex.vy = trex.jumpPower;
+                trex.onGround = false;
+            }
         }
     });
 
-    gameLoop();
+    gameLoop();  // Запускаем игровой цикл (начнется со стартового экрана)
 })();
