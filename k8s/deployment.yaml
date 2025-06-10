@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: test-app
-  namespace: default
+  name: barmaq-dapp
+  namespace: app
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: test-app
+      app: barmaq-dapp
   template:
     metadata:
       labels:
-        app: test-app
+        app: barmaq-dapp
     spec:
       containers:
-      - name: test-app
+      - name: barmaq-dapp
         image: nginx:1.21
         ports:
         - containerPort: 80
@@ -25,4 +25,3 @@ spec:
           limits:
             memory: "512Mi"
             cpu: "500m"
-            
