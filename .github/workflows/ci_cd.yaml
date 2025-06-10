@@ -10,7 +10,57 @@ env:
   K8S_NAMESPACE: app
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install linting dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 pylint
+
+      - name: Run Python linting
+        run: |
+          # Проверка с помощью flake8
+          flake8 . --count --max-line-length=120 --statistics
+
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install JS linting dependencies
+        run: |
+          npm install -g eslint
+          npm init -y
+          npm install --save-dev eslint
+
+      - name: Run JavaScript linting
+        run: |
+          # Создаем базовую конфигурацию ESLint
+          echo '{
+            "env": {
+              "browser": true,
+              "es2021": true
+            },
+            "extends": "eslint:recommended",
+            "parserOptions": {
+              "ecmaVersion": "latest"
+            }
+          }' > .eslintrc.json
+          
+          # Проверяем JavaScript файлы
+          eslint static/*.js || true
+
   build:
+    needs: lint
     runs-on: ubuntu-latest
     steps:
       # 1. Забираем код
