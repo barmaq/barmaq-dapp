@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: barmaq-dapp
-        image: nginx:1.21
+        image: barmaq/barmaq-dapp:latest
         ports:
         - containerPort: 80
         resources:
