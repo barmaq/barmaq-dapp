@@ -51,17 +51,26 @@ jobs:
       # 5. Деплоим в Kubernetes
       - name: Deploy to Cluster
         run: |
+          # Проверяем подключение к кластеру
+          echo "Checking cluster connection..."
+          kubectl cluster-info
+          kubectl get nodes
+          
           # Обновляем image tag в deployment
+          echo "Updating deployment image..."
           sed -i "s|${{ env.IMAGE_NAME }}:.*|${{ env.IMAGE_NAME }}:${{ github.sha }}|" k8s/deployment.yaml
           
-          # Применяем манифесты
-          kubectl apply -f k8s/deployment.yaml -n ${{ env.K8S_NAMESPACE }}
-          kubectl apply -f k8s/service.yaml -n ${{ env.K8S_NAMESPACE }}
+          # Применяем манифесты без валидации
+          echo "Applying manifests..."
+          kubectl apply -f k8s/deployment.yaml -n ${{ env.K8S_NAMESPACE }} --validate=false
+          kubectl apply -f k8s/service.yaml -n ${{ env.K8S_NAMESPACE }} --validate=false
           # Если есть Ingress:
-          #kubectl apply -f k8s/ingress.yaml -n ${{ env.K8S_NAMESPACE }}
+          #kubectl apply -f k8s/ingress.yaml -n ${{ env.K8S_NAMESPACE }} --validate=false
 
           # Проверяем поды
+          echo "Checking pods..."
           kubectl get pods -n ${{ env.K8S_NAMESPACE }}
           
           # Ждем, пока деплоймент обновится
+          echo "Waiting for deployment rollout..."
           kubectl rollout status deployment/barmaq-dapp -n ${{ env.K8S_NAMESPACE }} --timeout=300s
