@@ -37,7 +37,7 @@ jobs:
   deploy:
     needs: build
     name: Deploy to Kubernetes
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -46,7 +46,7 @@ jobs:
         uses: azure/k8s-set-context@v4
         with:
           method: kubeconfig
-          kubeconfig: ${{ secrets.KUBECONFIG }}
+          kubeconfig: ${{ secrets.KUBE_CONFIG }}
 
       # 5. Деплоим в Kubernetes
       - name: Deploy to Cluster
