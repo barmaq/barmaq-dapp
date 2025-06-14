@@ -10,7 +10,7 @@ env:
   K8S_NAMESPACE: app
 
 jobs:
-  lint:
+  test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -60,7 +60,7 @@ jobs:
           eslint static/*.js || true
 
   build:
-    needs: lint
+    needs: test
     runs-on: ubuntu-latest
     steps:
       # 1. Забираем код
